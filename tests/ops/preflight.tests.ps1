@@ -83,6 +83,24 @@ try {
 
     $RequiredCommands = @('git', 'node', 'pnpm', 'docker')
 
+    New-CommandShim -Directory $ShimRoot -Commands $RequiredCommands
+
+    $FixturePath = $ShimRoot + ';' +
+        (Join-Path $env:SystemRoot 'System32')
+    $Control = Invoke-PreflightWithPath -PathValue $FixturePath
+
+    if ($Control.ExitCode -ne 0) {
+        $Control.Output
+        Fail-Test 'all required synthetic commands did not pass.'
+    }
+
+    if (($Control.Output -join "`n") -notmatch 'PREFLIGHT=PASS') {
+        $Control.Output
+        Fail-Test 'all required synthetic commands did not report PREFLIGHT=PASS.'
+    }
+
+    Write-Host 'PASS all required commands pass'
+
     foreach ($MissingCommand in $RequiredCommands) {
         Get-ChildItem -LiteralPath $ShimRoot -Force | Remove-Item -Force
 
@@ -92,14 +110,17 @@ try {
 
         New-CommandShim -Directory $ShimRoot -Commands $AvailableCommands
 
-        $FixturePath = $ShimRoot + ';' +
-            (Join-Path $env:SystemRoot 'System32')
-
         $Result = Invoke-PreflightWithPath -PathValue $FixturePath
 
         if ($Result.ExitCode -eq 0) {
             $Result.Output
             Fail-Test "missing required $MissingCommand command returned exit code 0."
+        }
+
+        if (($Result.Output -join "`n") -notmatch `
+            [regex]::Escape($MissingCommand)) {
+            $Result.Output
+            Fail-Test "missing required $MissingCommand command was not identified in output."
         }
 
         Write-Host "PASS missing required $MissingCommand command fails"
