@@ -1,0 +1,59 @@
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Private keys and certificate material
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.der
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+
+# Supabase local runtime state
+.supabase/
+supabase/.temp/
+supabase/.branches/
+
+# Database dumps and local backups
+*.dump
+*.pgdump
+*.backup
+*.bak
+*.sql.gz
+dumps/
+backups/
+
+# Dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+.wrangler/
+.vercel/
+
+# Test and browser artifacts
+coverage/
+test-results/
+playwright-report/
+blob-report/
+*.lcov
+
+# Package-manager diagnostics
+pnpm-debug.log*
+
+# OS noise
+.DS_Store
+Thumbs.db
