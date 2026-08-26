@@ -67,36 +67,41 @@ Phase 1 не включва създаване на repository, продукто
 - **Не споделяй:** Account ID, token-и, API key, реална поща или данни за плащане.
 ### 6. Създай изолирани Supabase account и Organization — OWNER / ACCOUNT
 
+За V1 следвай [Supabase границата](../infrastructure/SUPABASE.md): използват се
+само PostgreSQL, Supabase Auth за owner Admin login и локалният Supabase CLI.
+Не активирай public signup, Realtime, Storage, Edge Functions, branching или
+други Supabase продукти.
+
 - **Къде:** В официалния Supabase сайт, в екрана за вход/създаване на акаунт и Organization.
-- **Кликни:** Избери създаване/вход с проектната идентичност, после създаване на една Organization за PC Advisor BG; провери free capacity за два активни проекта.
+- **Кликни:** Избери създаване/вход с проектната идентичност, после създаване на една Organization за PC Advisor BG; провери free capacity за два активни проекта и остави изключени всички несвързани продукти.
 - **Въведи:** Въведи проектната Proton идентичност директно във формата и одобреното project Organization име; не въвеждай или копирай идентификатори в публични места.
 - **Какво:** Създай или използвай една проектна Supabase Organization и потвърди възможност за два отделни free проекта.
 - **Защо:** Staging и Production трябва да са изолирани, без да се смесват с други данни и акаунти.
 - **Риск:** ACCOUNT / COST — недостатъчен free капацитет или допълнителни услуги изискват решение на собственика.
 - **Очакван резултат:** Има owner-controlled Organization и потвърдена възможност за два отделни free проекта.
-- **Ако е различно:** Ако два проекта не могат да са активни при €0, не добавяй платен ресурс и не заменяй с чужд проект; спри като `OWNER DECISION REQUIRED`.
+- **Ако е различно:** Ако два проекта не могат да са активни при €0 или интерфейсът изисква несвързан Supabase продукт, не добавяй платен ресурс, не активирай продукта и не заменяй с чужд проект; спри като `OWNER DECISION REQUIRED`.
 - **Не споделяй:** Реална поща, Organization ID, project ref, пароли, token-и или API ключове.
 ### 7. Създай Staging Supabase проект — OWNER / ACCOUNT
 
 - **Къде:** В проектната Supabase Organization, в екрана Projects за създаване на нов проект.
-- **Кликни:** Избери New Project и Frankfurt / `eu-central-1`; след създаването провери, че статусът е healthy.
+- **Кликни:** Избери New Project и Frankfurt / `eu-central-1`; не активирай public signup, Realtime, Storage, Edge Functions, branching или друг допълнителен продукт; след създаването провери, че статусът е healthy.
 - **Въведи:** Въведи `pc-advisor-staging`; генерирай database password директно във формата и го запиши директно в Bitwarden. Project ref остава само в private resource inventory.
 - **Какво:** Създай `pc-advisor-staging` във Frankfurt / `eu-central-1`, без продуктови таблици.
 - **Защо:** Staging е отделната хоствана среда за безопасна автоматизирана проверка с тестови данни.
 - **Риск:** STAGING / ACCOUNT — грешен регион или неправилна среда нарушава изолацията; не се създават продуктови таблици.
 - **Очакван резултат:** Здрав отделен Staging проект във Frankfurt, с private идентификатор и без продуктови данни.
-- **Ако е различно:** Ако регионът не е Frankfurt / `eu-central-1`, проектът не е healthy или изборът изисква плащане, не импровизирай; спри като `OWNER DECISION REQUIRED`.
+- **Ако е различно:** Ако регионът не е Frankfurt / `eu-central-1`, проектът не е healthy, изборът изисква плащане или продукт не може да остане изключен, не импровизирай; спри като `OWNER DECISION REQUIRED`.
 - **Не споделяй:** Project ref, database password, connection string, token-и или screenshots с идентификатори.
 ### 8. Създай Production Supabase проект — OWNER / ACCOUNT
 
 - **Къде:** В същата проектна Supabase Organization, в екрана Projects за създаване на нов проект.
-- **Кликни:** Избери New Project и Frankfurt / `eu-central-1`; след създаването провери, че статусът е healthy. Не свързвай агентски MCP/инструменти.
+- **Кликни:** Избери New Project и Frankfurt / `eu-central-1`; не активирай public signup, Realtime, Storage, Edge Functions, branching или друг допълнителен продукт; след създаването провери, че статусът е healthy. Не свързвай агентски MCP/инструменти.
 - **Въведи:** Въведи `pc-advisor-production`; генерирай database password директно във формата и го запиши директно в Bitwarden. Project ref остава само в private resource inventory.
 - **Какво:** Създай `pc-advisor-production` във Frankfurt / `eu-central-1` и не конфигурирай агентски MCP/инструменти за него.
 - **Защо:** Production остава изолирана security boundary още от създаването си.
 - **Риск:** PRODUCTION / ACCOUNT — това е чувствителна среда; не се създават продуктови таблици или реални данни и не се дава агентски достъп.
 - **Очакван резултат:** Здрав отделен Production проект във Frankfurt, контролиран само от собственика.
-- **Ако е различно:** Ако интерфейсът поиска по-широк достъп, плащане, друг регион или свързване на агентски инструмент, не потвърждавай; спри като `OWNER DECISION REQUIRED`.
+- **Ако е различно:** Ако интерфейсът поиска по-широк достъп, плащане, друг регион, допълнителен Supabase продукт или свързване на агентски инструмент, не потвърждавай; спри като `OWNER DECISION REQUIRED`.
 - **Не споделяй:** Project ref, database password, service-role/secret стойности, connection string, token-и или recovery материал.
 ### 9. Потвърди Phase 1 основата — OWNER / ACCOUNT
 
