@@ -39,13 +39,15 @@ package, not a task note or a roadmap item. It MUST contain these sections:
 5. **Excluded** — explicit non-goals and prohibited expansion.
 6. **External Effects** — allowed mutations or external interactions.
 7. **Environments** — permitted Local, CI, Staging, or Production scope.
-8. **Reviews** — independent and risk-triggered reviews required.
-9. **Tests** — verification required before completion.
-10. **DoD** — factual definition of done and evidence required.
-11. **Stops** — applicable `REPAIR`, `BLOCKED`, and owner-decision boundaries.
-12. **Owner Decisions** — decisions already resolved for the phase.
-13. **Owner Actions** — actions the owner must perform, if any.
-14. **Recovery** — ledger, rollback, and recovery expectations.
+8. **Required Tasks or Task-Generation Rules** — approved tasks, or the bounded
+   rules by which tasks may be derived without expanding the phase.
+9. **Reviews** — independent and risk-triggered reviews required.
+10. **Tests** — verification required before completion.
+11. **DoD** — factual definition of done and evidence required.
+12. **Stops** — applicable `REPAIR`, `BLOCKED`, and owner-decision boundaries.
+13. **Owner Decisions** — decisions already resolved for the phase.
+14. **Owner Actions** — actions the owner must perform, if any.
+15. **Recovery** — ledger, rollback, and recovery expectations.
 
 A brief must not grant a later phase, change the product boundary, or override
 [Stop Conditions](../governance/STOP_CONDITIONS.md).
