@@ -40,6 +40,31 @@ Staging is the autonomous hosted verification environment. It is a separately id
 
 Normal CI may receive narrowly scoped Staging secrets only where an approved phase requires them.
 
+## Phase 4 capability inventory — 2026-08-26
+
+This is a read-only capability snapshot for the normal agent environment. It
+records no token values, provider identifiers, account names, or recovery
+material. Availability does not grant permission and this snapshot does not
+replace hosted-operation preflight.
+
+| Category | Observed capability/scope | Policy comparison | Follow-up |
+| --- | --- | --- | --- |
+| GitHub | GitHub CLI is authenticated through the system keyring. Its reported scopes are `gist`, `read:org`, `read:project`, `repo`, and `workflow`. | Supports repository, pull-request, CI, and private Project operations. The scope readout alone cannot prove resource-level repository restriction or effective organization authority. It does not report an organization-owner or billing scope. | Task 2 must prove the permitted operations and their effective limits on PC Advisor BG resources. |
+| Supabase | No Supabase CLI, Supabase MCP connection, or Supabase-related environment variable was available to this normal agent session. | No Local or Staging provider capability has yet been proven; no Production connection is configured in this session. | Task 3 may add and verify only Local and separately identified Staging access. |
+| Cloudflare | No Wrangler CLI is installed. An active bearer API token is present in the normal agent environment; its account, resource, environment, and operation scope were not disclosed by the read-only token-validity check. No Global API Key environment variable was observed. | Active-token presence alone does not prove the required Staging-only boundary. There is no evidence here of Production authority, but the boundary remains unproven until scope and target are checked. | Task 4 must verify the approved Staging capability and absence of a normal Production deployment token without exposing identifiers or values. |
+| Browser verification | Google Chrome is installed. No Playwright CLI or local Playwright dependency is present, and no browser-verification stack is selected yet. | Does not yet satisfy the exactly-one-primary-stack rule. | Task 5 evaluates Playwright first and records one selected stack. |
+| Sentry | No Sentry CLI, connected Sentry integration, or Sentry-related environment variable is available in this session. | Read-only diagnostics are not activated; no Sentry write/admin capability is available to this agent session. | Task 6 may safely defer or configure only approved read diagnostics. |
+| Documentation | Official documentation can be retrieved through the agent's read-only web capability. No Context7 connection is available in this session. | Current official documentation is available as approved; Context7 is not a required permanent connection. | Task 7 records the research/documentation boundary and keeps non-approved tools disabled. |
+
+### Inventory decision boundary
+
+- This inventory intentionally does not configure a provider, alter a credential,
+  or access a hosted project or account resource.
+- An observed broad Production capability is a `BLOCKED` condition until it is
+  removed. No such capability was proven by this read-only snapshot.
+- An unproven scope is not treated as permission. The task named in the
+  follow-up column must establish its own target-specific evidence before use.
+
 ## Forbidden normal-agent Production access
 
 The normal coding agent and normal CI must not possess or use:

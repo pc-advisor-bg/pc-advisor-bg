@@ -27,6 +27,23 @@ All entries below are symbolic names only. Store actual values outside Git in th
 - If a secret may have leaked, follow the authoritative containment sequence in [TOOL_POLICY.md](../governance/TOOL_POLICY.md): revoke, replace, determine exposure, verify, and document.
 - Public Git history is treated as publicly obtainable. Removing a value from a later commit is not containment.
 
+## Phase 4 observed capability boundary — 2026-08-26
+
+The Task 1 read-only inventory observed the following capability boundary
+without recording any value, identifier, account name, or token material:
+
+| Area | Observed boundary | Required interpretation |
+| --- | --- | --- |
+| GitHub | The authenticated GitHub CLI token is held by the system keyring and reports repository, workflow, organization-read, project-read, and gist scopes. | Scope labels do not prove a resource-level repository boundary or effective organization authority; Task 2 must prove the permitted PC Advisor BG operations. |
+| Supabase | No Supabase CLI, MCP connection, or related environment variable is available to the normal agent session. | No provider access is approved or implied. Task 3 may establish only Local and approved Staging capability. |
+| Cloudflare | An active bearer API token is present in the normal agent environment, but its scope and target were not recorded. No Global API Key environment variable was observed. | Treat its Staging-only and least-privilege status as unproven until Task 4 supplies target-specific evidence. It must not be used for Production work. |
+| Browser and Sentry | Chrome is locally available; no browser automation stack, Sentry CLI, Sentry integration, or Sentry-related environment variable is present. | Browser selection remains Task 5. Sentry remains unavailable or safely deferred pending Task 6. |
+| Documentation | Read-only official-documentation retrieval is available; Context7 is not connected in this session. | Official documentation remains permitted. Connection availability does not authorize additional documentation or research tooling. |
+
+An unexpected broad Production capability is a `BLOCKED` condition under
+`STOP_CONDITIONS.md` until removed. This snapshot proved no such capability;
+it also does not treat absent proof as a grant of access.
+
 ## Related authorities
 
 - [TOOL_POLICY.md](../governance/TOOL_POLICY.md) — secure handling and Production capability boundary.
