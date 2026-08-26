@@ -54,8 +54,8 @@
 
 ### Phase status
 
-- This repository is installing the project operating system in Phase 3.
-- Phase 4 Tool and Permission Wiring is not authorized by this phase.
+- Phase 4 — Tool & Permission Wiring is the active owner-approved phase; its authoritative brief is docs/phases/briefs/phase-04-tool-permission-wiring.md.
+- Phase 5 Environment Skeleton & Security Proof remains unauthorized.
 - Product coding remains forbidden until the Ready-to-Code Gate is proven.
 
 ## Start-of-task preflight
