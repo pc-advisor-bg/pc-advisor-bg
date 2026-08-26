@@ -9,6 +9,17 @@ function Add-Failure {
     Write-Host "FAIL: $Message"
 }
 
+function Test-ApprovedGitHubNoreplyEmail {
+    param([string]$Email)
+
+    if ([string]::IsNullOrWhiteSpace($Email)) {
+        return $false
+    }
+
+    return $Email -match `
+        '^(?i:noreply@github\.com|(?:[0-9]+\+)?[^@\s]+@users\.noreply\.github\.com)$'
+}
+
 $Repo = (git rev-parse --show-toplevel 2>$null)
 
 if ($LASTEXITCODE -ne 0 -or -not $Repo) {
@@ -157,6 +168,71 @@ foreach ($Path in $Tracked) {
                 "$($Rule.Name): $Path"
             )
         }
+    }
+}
+
+Write-Host "`n=== COMMIT METADATA ==="
+
+$HistoryRange = $null
+
+git rev-parse --verify --quiet 'origin/main' *> $null
+
+if ($LASTEXITCODE -eq 0) {
+    $HistoryRange = 'origin/main..HEAD'
+}
+else {
+    git rev-parse --verify --quiet 'main' *> $null
+
+    if ($LASTEXITCODE -eq 0) {
+        $HistoryRange = 'main..HEAD'
+    }
+}
+
+if ($HistoryRange) {
+    $Metadata = @(
+        git log --format='%H%x09%ae%x09%ce' $HistoryRange
+    )
+
+    if ($LASTEXITCODE -ne 0) {
+        Add-Failure 'Could not inspect relevant commit metadata.'
+        $Metadata = @()
+    }
+    elseif ($Metadata.Count -eq 0) {
+        $Metadata = @(git log --format='%H%x09%ae%x09%ce' HEAD)
+
+        if ($LASTEXITCODE -ne 0) {
+            Add-Failure 'Could not inspect current commit metadata.'
+            $Metadata = @()
+        }
+    }
+}
+else {
+    $Metadata = @(git log --format='%H%x09%ae%x09%ce' HEAD)
+
+    if ($LASTEXITCODE -ne 0) {
+        Add-Failure 'Could not inspect current commit metadata.'
+        $Metadata = @()
+    }
+}
+
+foreach ($Entry in $Metadata) {
+    $Fields = $Entry -split "`t", 3
+
+    if ($Fields.Count -ne 3) {
+        Add-Failure 'Could not parse commit metadata.'
+        continue
+    }
+
+    $Commit = $Fields[0]
+    $AuthorEmail = $Fields[1]
+    $CommitterEmail = $Fields[2]
+
+    if (-not (Test-ApprovedGitHubNoreplyEmail $AuthorEmail)) {
+        Add-Failure "Commit $Commit has a non-approved author email."
+    }
+
+    if (-not (Test-ApprovedGitHubNoreplyEmail $CommitterEmail)) {
+        Add-Failure "Commit $Commit has a non-approved committer email."
     }
 }
 

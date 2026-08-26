@@ -12,32 +12,52 @@ function Add-Failure {
 function Test-Executable {
     param(
         [string]$Name,
-        [scriptblock]$Command
+        [string]$Executable,
+        [string[]]$Arguments
     )
 
     Write-Host "`n=== $Name ==="
-    & $Command
 
-    if ($LASTEXITCODE -ne 0) {
-        Add-Failure "$Name failed with exit code $LASTEXITCODE."
+    $CommandInfo = Get-Command -Name $Executable `
+        -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if (-not $CommandInfo) {
+        Add-Failure "$Name requires $Executable, but no executable was found."
+        return
+    }
+
+    try {
+        $global:LASTEXITCODE = 0
+        & $CommandInfo.Source @Arguments
+        $ExitCode = $LASTEXITCODE
+    }
+    catch {
+        Add-Failure "$Name could not invoke $Executable."
+        return
+    }
+
+    if ($ExitCode -ne 0) {
+        Add-Failure "$Name failed with exit code $ExitCode."
     }
 }
 
 Write-Host '=== PC Advisor BG read-only preflight ==='
 
-Test-Executable 'GIT VERSION' { git --version }
-Test-Executable 'GIT PATHS' { where.exe git }
+Test-Executable 'GIT VERSION' 'git' @('--version')
+Test-Executable 'GIT PATHS' 'where.exe' @('git')
 
 Write-Host "`n=== ACTIVE NODE ==="
 
-$NodeCommand = Get-Command node -ErrorAction SilentlyContinue
+$NodeCommand = Get-Command node -CommandType Application `
+    -ErrorAction SilentlyContinue | Select-Object -First 1
 
 if (-not $NodeCommand) {
     Add-Failure 'Node.js is required but the active node command was not found.'
 }
 else {
     $ActiveNodePath = $NodeCommand.Source
-    $ActiveNodeVersion = (node --version 2>$null)
+    $ActiveNodeVersion = (& $NodeCommand.Source --version 2>$null)
 
     if ($LASTEXITCODE -ne 0 -or -not $ActiveNodeVersion) {
         Add-Failure 'Node.js is required but node --version failed.'
@@ -103,13 +123,14 @@ else {
 
 Write-Host "`n=== ACTIVE PNPM ==="
 
-$PnpmCommand = Get-Command pnpm -ErrorAction SilentlyContinue
+$PnpmCommand = Get-Command pnpm -CommandType Application `
+    -ErrorAction SilentlyContinue | Select-Object -First 1
 
 if (-not $PnpmCommand) {
     Add-Failure 'pnpm is required but the active pnpm command was not found.'
 }
 else {
-    $ActivePnpmVersion = (pnpm --version 2>$null)
+    $ActivePnpmVersion = (& $PnpmCommand.Source --version 2>$null)
 
     if ($LASTEXITCODE -ne 0 -or -not $ActivePnpmVersion) {
         Add-Failure 'pnpm is required but pnpm --version failed.'
@@ -153,7 +174,7 @@ else {
     }
 }
 
-Test-Executable 'PNPM PATHS' { where.exe pnpm }
+Test-Executable 'PNPM PATHS' 'where.exe' @('pnpm')
 
 Write-Host "`n=== OPTIONAL VERSION MANAGERS ==="
 
@@ -178,8 +199,8 @@ else {
     Write-Host 'INFO: Volta not installed (optional).'
 }
 
-Test-Executable 'DOCKER VERSION' { docker version }
-Test-Executable 'DOCKER INFO' { docker info }
+Test-Executable 'DOCKER VERSION' 'docker' @('version')
+Test-Executable 'DOCKER INFO' 'docker' @('info')
 
 Write-Host "`n=== PREFLIGHT RESULT ==="
 
