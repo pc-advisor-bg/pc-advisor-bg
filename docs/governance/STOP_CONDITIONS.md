@@ -20,7 +20,9 @@ Preserve the factual state, avoid speculative workarounds, update the recovery l
 
 ### OWNER DECISION REQUIRED
 
-A decision is required in an owner-controlled category or the required choice is genuinely unresolved.
+A decision is required in an owner-controlled category, or a genuine unresolved blocker requires an owner or business choice.
+
+Bounded technical uncertainty remains autonomous: investigate and select within the approved constraints. For example, when two code-level repair approaches preserve the approved architecture and neither changes an owner-controlled boundary, select and verify one without escalation. Use `BLOCKED` only when a proven condition prevents a permitted path.
 
 Stop before mutation, preserve state, and present one concrete decision with the practical consequence of each relevant outcome. Do not ask an unbounded question.
 

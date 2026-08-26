@@ -42,6 +42,14 @@ V1 requires no public user accounts; Admin authentication is for one owner accou
 
 Shared result snapshots remain stable over time.
 
+## Резюме за собственика
+
+V1 е независим български помощник за избор на нови PC компоненти в рамките на €600–€4,000, с ясни и детерминистични препоръки.
+
+Не добавяме marketplace, плащания, публични акаунти, външен AI или несвързана инфраструктура; подробният списък е по-долу.
+
+Ти решаваш за пари, акаунти и възстановяване, правни и търговски въпроси, Production и обхвата на фазите.
+
 ## Explicit V1 exclusions
 
 The following are out of scope unless a later owner-approved Phase Brief changes the boundary:
