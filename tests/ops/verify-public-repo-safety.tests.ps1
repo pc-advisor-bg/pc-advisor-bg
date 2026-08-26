@@ -77,7 +77,8 @@ function Invoke-Safety {
 function Assert-SafetyPass {
     param(
         [string]$Repository,
-        [string]$Scenario
+        [string]$Scenario,
+        [switch]$PassThru
     )
 
     $Result = Invoke-Safety -Repository $Repository
@@ -86,12 +87,17 @@ function Assert-SafetyPass {
         $Result.Output
         Fail-Test "$Scenario did not pass safety verification."
     }
+
+    if ($PassThru) {
+        return $Result
+    }
 }
 
 function Assert-SafetyFail {
     param(
         [string]$Repository,
-        [string]$Scenario
+        [string]$Scenario,
+        [switch]$PassThru
     )
 
     $Result = Invoke-Safety -Repository $Repository
@@ -99,6 +105,10 @@ function Assert-SafetyFail {
     if ($Result.ExitCode -eq 0) {
         $Result.Output
         Fail-Test "$Scenario was not rejected by safety verification."
+    }
+
+    if ($PassThru) {
+        return $Result
     }
 }
 
@@ -201,11 +211,22 @@ try {
         -Encoding ASCII
     Invoke-Git -Repository $FixtureRoot `
         -Arguments @('add', '-f', '--', '.safety-probe.key')
-    Assert-SafetyFail -Repository $FixtureRoot `
-        -Scenario 'tracked forbidden filename'
-    Invoke-Git -Repository $FixtureRoot `
-        -Arguments @('reset', '-q', '--', '.safety-probe.key')
-    Remove-Item -LiteralPath $FilenameProbe -Force
+    Invoke-Git -Repository $FixtureRoot -Arguments @(
+        '-c', 'user.name=GitHub',
+        '-c', 'user.email=noreply@github.com',
+        'commit', '--author=Fixture <12345+fixture@users.noreply.github.com>',
+        '-m', 'synthetic forbidden filename'
+    )
+    $FilenameResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'tracked forbidden filename' -PassThru
+
+    if (($FilenameResult.Output -join "`n") -notmatch `
+        'Tracked filename matches forbidden') {
+        $FilenameResult.Output
+        Fail-Test 'forbidden filename was not rejected by the filename rule.'
+    }
+
+    Invoke-Git -Repository $FixtureRoot -Arguments @('reset', '--hard', 'main')
     Write-Host 'PASS tracked forbidden filename rejected'
 
     Write-Host "`n=== TEST: forbidden tracked content fails ==="
@@ -215,14 +236,103 @@ try {
         -Encoding ASCII
     Invoke-Git -Repository $FixtureRoot `
         -Arguments @('add', '--', 'content-probe.txt')
-    Assert-SafetyFail -Repository $FixtureRoot `
-        -Scenario 'tracked forbidden content'
-    Invoke-Git -Repository $FixtureRoot `
-        -Arguments @('reset', '-q', '--', 'content-probe.txt')
-    Remove-Item -LiteralPath $ContentProbe -Force
+    Invoke-Git -Repository $FixtureRoot -Arguments @(
+        '-c', 'user.name=GitHub',
+        '-c', 'user.email=noreply@github.com',
+        'commit', '--author=Fixture <12345+fixture@users.noreply.github.com>',
+        '-m', 'synthetic forbidden content'
+    )
+    $ContentResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'tracked forbidden content' -PassThru
+
+    if (($ContentResult.Output -join "`n") -notmatch `
+        'Tracked content matches forbidden') {
+        $ContentResult.Output
+        Fail-Test 'forbidden content was not rejected by the content rule.'
+    }
+
+    Invoke-Git -Repository $FixtureRoot -Arguments @('reset', '--hard', 'main')
     Write-Host 'PASS tracked forbidden content rejected'
 
-    Write-Host "`n=== TEST: private author and committer metadata fail ==="
+    Write-Host "`n=== TEST: committed forbidden content cannot be hidden locally ==="
+    $CommittedContentProbe = Join-Path $FixtureRoot `
+        'committed-content-probe.txt'
+    Set-Content -LiteralPath $CommittedContentProbe `
+        -Value 'DEMO_API_KEY=synthetic-not-a-real-secret-123456789' `
+        -Encoding ASCII
+    Invoke-Git -Repository $FixtureRoot `
+        -Arguments @('add', '--', 'committed-content-probe.txt')
+    Invoke-Git -Repository $FixtureRoot -Arguments @(
+        '-c', 'user.name=GitHub',
+        '-c', 'user.email=noreply@github.com',
+        'commit', '--author=Fixture <12345+fixture@users.noreply.github.com>',
+        '-m', 'synthetic committed forbidden content'
+    )
+
+    Set-Content -LiteralPath $CommittedContentProbe `
+        -Value 'safe local replacement' -Encoding ASCII
+    $SafeReplacementResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'committed forbidden content with safe local replacement' `
+        -PassThru
+
+    if (($SafeReplacementResult.Output -join "`n") -notmatch `
+        'working tree is dirty') {
+        $SafeReplacementResult.Output
+        Fail-Test 'safe local replacement did not fail closed on dirty content.'
+    }
+
+    Invoke-Git -Repository $FixtureRoot `
+        -Arguments @('reset', '--hard', 'HEAD')
+    Invoke-Git -Repository $FixtureRoot `
+        -Arguments @('rm', '--cached', '--', 'committed-content-probe.txt')
+    $StagedDeletionResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'staged deletion of committed forbidden content' -PassThru
+
+    if (($StagedDeletionResult.Output -join "`n") -notmatch `
+        'index is dirty') {
+        $StagedDeletionResult.Output
+        Fail-Test 'staged deletion did not fail closed on dirty index state.'
+    }
+
+    Invoke-Git -Repository $FixtureRoot `
+        -Arguments @('reset', '--hard', 'HEAD')
+    Remove-Item -LiteralPath $CommittedContentProbe -Force
+    $UnstagedDeletionResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'unstaged deletion of committed forbidden content' -PassThru
+
+    if (($UnstagedDeletionResult.Output -join "`n") -notmatch `
+        'working tree is dirty') {
+        $UnstagedDeletionResult.Output
+        Fail-Test 'unstaged deletion did not fail closed on dirty content.'
+    }
+
+    Invoke-Git -Repository $FixtureRoot -Arguments @('reset', '--hard', 'main')
+    Write-Host 'PASS committed forbidden content cannot be hidden locally'
+
+    Write-Host "`n=== TEST: private author metadata fails ==="
+    Set-Content -LiteralPath (Join-Path $FixtureRoot 'metadata-probe.txt') `
+        -Value 'synthetic metadata probe' -Encoding ASCII
+    Invoke-Git -Repository $FixtureRoot `
+        -Arguments @('add', '--', 'metadata-probe.txt')
+    Invoke-Git -Repository $FixtureRoot -Arguments @(
+        '-c', 'user.name=GitHub',
+        '-c', 'user.email=noreply@github.com',
+        'commit', '--author=Private Author <private.author@example.invalid>',
+        '-m', 'synthetic private metadata'
+    )
+    $PrivateAuthorResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'private author metadata' -PassThru
+
+    if (($PrivateAuthorResult.Output -join "`n") -notmatch `
+        'non-approved author email') {
+        $PrivateAuthorResult.Output
+        Fail-Test 'private author metadata did not identify the author check.'
+    }
+
+    Invoke-Git -Repository $FixtureRoot -Arguments @('reset', '--hard', 'main')
+    Write-Host 'PASS private author metadata rejected'
+
+    Write-Host "`n=== TEST: private committer metadata fails ==="
     Set-Content -LiteralPath (Join-Path $FixtureRoot 'metadata-probe.txt') `
         -Value 'synthetic metadata probe' -Encoding ASCII
     Invoke-Git -Repository $FixtureRoot `
@@ -230,13 +340,20 @@ try {
     Invoke-Git -Repository $FixtureRoot -Arguments @(
         '-c', 'user.name=Private Committer',
         '-c', 'user.email=private.committer@example.invalid',
-        'commit', '--author=Private Author <private.author@example.invalid>',
-        '-m', 'synthetic private metadata'
+        'commit', '--author=Approved Author <12345+fixture@users.noreply.github.com>',
+        '-m', 'synthetic private committer metadata'
     )
-    Assert-SafetyFail -Repository $FixtureRoot `
-        -Scenario 'private author and committer metadata'
+    $PrivateCommitterResult = Assert-SafetyFail -Repository $FixtureRoot `
+        -Scenario 'private committer metadata' -PassThru
+
+    if (($PrivateCommitterResult.Output -join "`n") -notmatch `
+        'non-approved committer email') {
+        $PrivateCommitterResult.Output
+        Fail-Test 'private committer metadata did not identify the committer check.'
+    }
+
     Invoke-Git -Repository $FixtureRoot -Arguments @('reset', '--hard', 'main')
-    Write-Host 'PASS private author and committer metadata rejected'
+    Write-Host 'PASS private committer metadata rejected'
 
     Write-Host "`n=== TEST: GitHub noreply metadata passes ==="
     Set-Content -LiteralPath (Join-Path $FixtureRoot 'noreply-probe.txt') `

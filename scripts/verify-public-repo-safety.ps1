@@ -20,6 +20,27 @@ function Test-ApprovedGitHubNoreplyEmail {
         '^(?i:noreply@github\.com|(?:[0-9]+\+)?[^@\s]+@users\.noreply\.github\.com)$'
 }
 
+function Test-CleanGitState {
+    param(
+        [string]$Name,
+        [string[]]$Arguments
+    )
+
+    git diff @Arguments *> $null
+
+    switch ($LASTEXITCODE) {
+        0 { return }
+        1 {
+            Add-Failure "$Name is dirty; safety verification requires HEAD-equivalent tracked content."
+            return
+        }
+        default {
+            Add-Failure "Could not verify $Name state."
+            return
+        }
+    }
+}
+
 $Repo = (git rev-parse --show-toplevel 2>$null)
 
 if ($LASTEXITCODE -ne 0 -or -not $Repo) {
@@ -31,6 +52,13 @@ $Repo = $Repo.Trim()
 Set-Location -LiteralPath $Repo
 
 Write-Host '=== PC Advisor BG public repository safety ==='
+
+Test-CleanGitState 'working tree' @(
+    '--quiet', '--ignore-submodules', '--'
+)
+Test-CleanGitState 'index' @(
+    '--cached', '--quiet', '--ignore-submodules', '--'
+)
 
 $Tracked = @(
     git ls-files |
@@ -140,6 +168,7 @@ foreach ($Path in $Tracked) {
     $FullPath = Join-Path $Repo ($Path -replace '/', '\')
 
     if (-not (Test-Path -LiteralPath $FullPath -PathType Leaf)) {
+        Add-Failure "Could not inspect committed tracked file: $Path"
         continue
     }
 
