@@ -17,7 +17,7 @@ Admin е бъдещият собственически интерфейс за �
 - Site Health;
 - история на промените и owner-safe rollback.
 
-Admin не е инфраструктурен панел. Не трябва да показва или дава управление на SQL конзола, общ редактор на база данни, secret-и, environment variables, API token-и, deploy контроли, Git, Cloudflare/Supabase акаунти или произволен JSON. Тази граница е част от одобрения дизайн, не заместител на [Supabase Infrastructure](../infrastructure/SUPABASE.md) или [Cloudflare Infrastructure](../infrastructure/CLOUDFLARE.md).
+Admin не е инфраструктурен панел. Не трябва да показва или дава управление на SQL конзола, общ редактор на база данни, secret-и, environment variables, API token-и, deploy контроли, Git, Cloudflare/Supabase акаунти, произволен JSON или универсални създатели на роли/работни потоци. Тази граница е част от одобрения дизайн, не заместител на [Supabase Infrastructure](../infrastructure/SUPABASE.md) или [Cloudflare Infrastructure](../infrastructure/CLOUDFLARE.md).
 
 ## Нормална бизнес операция
 

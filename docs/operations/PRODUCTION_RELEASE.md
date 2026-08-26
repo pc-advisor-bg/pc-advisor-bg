@@ -1,8 +1,8 @@
 # Production Release
 
-## Bulgarian owner summary
+## Резюме за собственика
 
-Production is separate from `main` and Staging. Before any Production release, the owner receives the exact verified SHA, its change and risk summary, Staging evidence, migration summary, backup status, rollback procedure, and known limitations. Production starts only after the owner explicitly approves that exact candidate. An approval for one SHA does not approve a different SHA.
+Production е отделна от `main` и Staging. Преди всяко Production пускане собственикът получава точния проверен SHA, обобщение на промяната и риска, Staging доказателства, migration обобщение, backup статус, rollback процедура и известни ограничения. Пускането в Production започва само след като собственикът изрично одобри точно този кандидат. Одобрение за един SHA не одобрява различен SHA.
 
 ## Purpose and boundary
 
