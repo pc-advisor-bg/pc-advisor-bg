@@ -17,6 +17,7 @@ authoritative policy home; they do not grant implementation authority.
 | [0009](0009-one-v1-repository.md) | One V1 repository | Accepted |
 | [0010](0010-zero-euro-recurring-cost-target.md) | €0 mandatory recurring-cost target | Accepted |
 | [0011](0011-runtime-version-selection.md) | Runtime version selection | Accepted |
+| [0012](0012-browser-verification-stack.md) | Playwright browser verification stack | Accepted |
 
 New records use the next sequential number. A record may be reconsidered only
 through its stated reversal condition and the governing owner-approval path.
